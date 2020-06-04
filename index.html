@@ -1,0 +1,445 @@
+<html>
+
+
+
+
+	
+<style>	
+	
+.send-button {
+    background-color: #f68a1f;
+    border: none;
+    color: white;
+    padding: 10px 10px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 10px 0px;
+    cursor: pointer;
+	  border-radius: 4px;
+	  -webkit-transition-duration: 0.4s; /* Safari */
+    transition-duration: 0.4s;
+	  font-family: "Myriad pro","Trebuchet MS","Lucida Grande","Lucida Sans Unicode","Lucida Sans",sans-serif;
+}
+.send-button:hover {
+    background-color: #da7009;
+    color: white;	
+}
+	
+.send-button:disabled,
+.send-button[disabled]{
+  background-color: #f68a1f;
+  opacity: 0.5;
+}
+	
+.nps-button {
+    background-color: #6495ed;
+    border: none;
+    color: white;
+    padding: 10px 10px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 10px 0px;
+    cursor: pointer;
+	  border-radius: 4px;
+	  -webkit-transition-duration: 0.4s; /* Safari */
+    transition-duration: 0.4s;
+	  font-family: "Myriad pro","Trebuchet MS","Lucida Grande","Lucida Sans Unicode","Lucida Sans",sans-serif;
+}
+.nps-button:hover {
+    background-color: #4668a5;
+    color: white;	
+}
+	
+.nps-button:disabled,
+.nps-button[disabled]{
+  background-color: #6495ed;
+  opacity: 0.5;
+}
+	
+	
+#myUrlLink {
+  display: none;
+}
+	
+ 
+</style>
+ 
+<head>
+	
+	<script>
+		/***
+		console.log("top location --> " + document.referrer);
+		if (document.referrer != "https://z2.le.liveperson.net/a/31554357/") {
+			location.replace("https://www.google.com");
+		}
+		***/
+		
+	</script>
+
+<script src="https://lpcdn.lpsnmedia.net/webagent/client-SDK.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+
+</head>
+<body>
+
+
+<script>
+	
+	var phoneNumber;
+	var visitorID;
+	var myClaim = "";
+
+	var myType;
+	var visitorIDretrieved = false;
+	
+	
+	function sendNPS(){
+		
+		var myCustomMSG = "https://marcodagolini.github.io/surveytest/?customer=" + visitorID;
+		console.log(myCustomMSG);
+		var cmdName = lpTag.agentSDK.cmdNames.write;
+		var data = {text: myCustomMSG};
+		lpTag.agentSDK.command(cmdName, data, function (err) {
+			outputLog.value = err ? err : 'done';
+		});
+	}
+	
+	function bindNumber(){
+		console.log(visitorID);
+		phoneNumber = $("#numberToBind").val();
+		if(phoneNumber && (!isNaN(phoneNumber))){
+			console.log("binding");
+			document.getElementById("alertBind").innerHTML = "...binding data...";
+            		document.getElementById("alertBind").style = "color : red";
+			var xhr = new XMLHttpRequest();
+        		xhr.addEventListener("readystatechange", function () {
+          			if (this.readyState === 4) {
+					// var jsonResult = JSON.parse(this.responseText);
+					if (xhr.response === "error"){
+						document.getElementById("alertBind").innerHTML = "error!";
+            					document.getElementById("alertBind").style = "color : red";
+						console.log(xhr.response);
+						setTimeout(function(){
+							document.getElementById("alertBind").innerHTML = "";
+						}, 3000);
+					} else{
+            					document.getElementById("alertBind").innerHTML = "done!";
+            					document.getElementById("alertBind").style = "color : green";
+						console.log(xhr.response);
+						setTimeout(function(){
+							document.getElementById("alertBind").innerHTML = "";
+						}, 3000);
+						var myResponse = JSON.parse(xhr.response);
+						document.getElementById("phone").innerHTML = $("#numberToBind").val();
+						$('#name').val(myResponse.name);
+						$('#facebookID').val(visitorID);
+						if(myResponse.status === "VIP"){
+							$("#myctype").prop("selectedIndex", 0).change();
+						} else if(myResponse.status === "disturber"){
+							$("#myctype").prop("selectedIndex", 1).change();
+						} else{
+							$("#myctype").prop("selectedIndex", 2).change();
+						}
+						var myCrmUrl = "https://eu16.lightning.force.com/lightning/r/myContact__c/" + myResponse.id + "/view";
+						$("#myHref").attr("href",myCrmUrl);
+						$("#myUrlLink").show();
+					}
+					
+          			}	
+        		});
+        		var URLforPOST = "https://marcowabot.herokuapp.com/bind";
+			xhr.open("POST", URLforPOST);
+			xhr.setRequestHeader("Content-Type", "application/json");
+			
+			var myBodyToSend = JSON.stringify({"phone": phoneNumber, "visitorID": visitorID});
+        		xhr.send(myBodyToSend);
+		}
+		
+	}
+	
+	
+	function sendData(){
+		console.log("sending");
+		document.getElementById("alertSend").innerHTML = "...sending data...";
+            	document.getElementById("alertSend").style = "color : red";
+		var xhr = new XMLHttpRequest();
+        	xhr.addEventListener("readystatechange", function () {
+          		if (this.readyState === 4) {
+				// var jsonResult = JSON.parse(this.responseText);
+            			document.getElementById("alertSend").innerHTML = "done!";
+            			document.getElementById("alertSend").style = "color : green";
+				console.log(xhr.response);
+				setTimeout(function(){
+					document.getElementById("alertSend").innerHTML = "";
+				}, 3000);
+          		}	
+        	});
+        	var URLforPOST = "https://marcowabot.herokuapp.com/push";
+		xhr.open("POST", URLforPOST);
+		xhr.setRequestHeader("Content-Type", "application/json");
+		var phone = $("#phone").html();
+		var name = $("#name").val();
+		var facebookID = $("#facebookID").val();
+		var status = $("#myctype")[0].selectedOptions[0].innerHTML;
+		var myBodyToSend = JSON.stringify({"phone": phone, "name": name, "facebookID": facebookID, "status": status});
+        	xhr.send(myBodyToSend);
+	}
+	
+	
+	function fetchData(phoneNumber) {
+		if(typeof phoneNumber === "object"){
+			document.getElementById("phone").innerHTML = "not available";
+			$('#name').val("error");
+			$('#facebookID').val("error");
+			$("#myctype").prop("selectedIndex", 2).change();
+		} else{
+			console.log(JSON.stringify(phoneNumber));
+			console.log(typeof phoneNumber);
+			var xhr = new XMLHttpRequest();
+			xhr.addEventListener("readystatechange", function () {
+				if (this.readyState === 4) {
+					// var jsonResult = JSON.parse(this.responseText);
+					console.log(xhr.response);
+					if (xhr.response === "error"){
+						document.getElementById("phone").innerHTML = phoneNumber;
+						$('#name').val("error");
+						$('#facebookID').val("error");
+						$("#myctype").prop("selectedIndex", 2).change();
+					} else{
+						var myResponse = JSON.parse(xhr.response);
+						document.getElementById("phone").innerHTML = phoneNumber;
+						$('#name').val(myResponse.name);
+						$('#facebookID').val(myResponse.facebookID);
+						if(myResponse.status === "VIP"){
+							$("#myctype").prop("selectedIndex", 0).change();
+						} else if(myResponse.status === "disturber"){
+							$("#myctype").prop("selectedIndex", 1).change();
+						} else{
+							$("#myctype").prop("selectedIndex", 2).change();
+						}
+						var myCrmUrl = "https://eu16.lightning.force.com/lightning/r/myContact__c/" + myResponse.id + "/view";
+						$("#myHref").attr("href",myCrmUrl);
+						$("#myUrlLink").show();
+						
+						if(myResponse.isThereConv !== "none"){
+							var myAlert = "***Alert*** Customer is having a conversation through " + myResponse.isThereConv + " channel";
+							document.getElementById("alertOtherConversations").innerHTML = myAlert;
+							document.getElementById("alertOtherConversations").style = "color : red";
+						}
+						
+						
+						$("#submit").prop( "disabled", false );
+						$("#sendNPS").prop( "disabled", false );
+						
+					}
+				}	
+			});
+			var URLforGET = "https://marcowabot.herokuapp.com/getApp?phone=" + phoneNumber;
+			console.log(URLforGET);
+			xhr.open("GET", URLforGET);
+			xhr.send();
+		}
+		
+	}
+	
+	
+	function fetchDataFB() {
+		if(!visitorID){
+			// do nothing
+		} else{
+			var xhr = new XMLHttpRequest();
+			xhr.addEventListener("readystatechange", function () {
+				if (this.readyState === 4) {
+					// var jsonResult = JSON.parse(this.responseText);
+					console.log(xhr.response);
+					if (xhr.response === "error"){
+						// do nothing
+					} else{
+						var myResponse = JSON.parse(xhr.response);
+						document.getElementById("phone").innerHTML = myResponse.phone;
+						$('#name').val(myResponse.name);
+						$('#facebookID').val(visitorID);
+						if(myResponse.status === "VIP"){
+							$("#myctype").prop("selectedIndex", 0).change();
+						} else if(myResponse.status === "disturber"){
+							$("#myctype").prop("selectedIndex", 1).change();
+						} else{
+							$("#myctype").prop("selectedIndex", 2).change();
+						}
+						var myCrmUrl = "https://eu16.lightning.force.com/lightning/r/myContact__c/" + myResponse.id + "/view";
+						$("#myHref").attr("href",myCrmUrl);
+						$("#myUrlLink").show();
+						
+						if(myResponse.isThereConv !== "none"){
+							var myAlert = "***Alert*** Customer is having a conversation through " + myResponse.isThereConv + " channel";
+							document.getElementById("alertOtherConversations").innerHTML = myAlert;
+							document.getElementById("alertOtherConversations").style = "color : red";
+						}
+						
+						$("#submit").prop( "disabled", false );
+						$("#sendNPS").prop( "disabled", false );
+						
+					}
+				}	
+			});
+			var URLforGET = "https://marcowabot.herokuapp.com/getFB?facebookID=" + visitorID;
+			console.log(URLforGET);
+			xhr.open("GET", URLforGET);
+			xhr.send();
+		}
+		
+	}	
+	
+	
+	
+	    
+	$(document).ready(function() {
+              
+              	var SDK=lpTag.agentSDK;
+              	SDK.init();
+
+		
+                var onSuccess = function(data) {
+                // Do something with the returning data
+                	phoneNumber = data;
+			fetchData(phoneNumber);
+                };
+                
+                var onError = function(data) {
+                // Do something with the returning data
+                	phoneNumber = null;
+                };
+		
+		var onSuccessClaims = function(data) {
+                // Do something with the returning data
+                	myClaim = data;
+			console.log("subID --> " + myClaim);
+                };
+                
+                var onErrorClaims = function(data) {
+                // Do something with the returning data
+                	
+                };
+
+
+
+		var onSuccessType = function(data) {
+                // Do something with the returning data
+                	myType = data;
+			console.log("subID --> " + myType);
+			if ((myType.indexOf("acebook") > -1) && visitorIDretrieved){
+				$("#bindNumber").prop( "disabled", false );
+				$("#numberToBind").prop( "disabled", false );
+				fetchDataFB();
+			}
+                };
+                
+                var onErrorType = function(data) {
+                // Do something with the returning data
+                	
+                };
+		
+		var onSuccessSDE = function(data) {
+                // Do something with the returning data
+                	var SDE = data;
+			console.log("SDE --> " + JSON.stringify(SDE));
+                };
+                
+                var onErrorSDE = function(data) {
+                // Do something with the returning data
+                	
+                };
+		
+		
+		var onSuccessVisitorID = function(data) {
+                // Do something with the returning data
+			visitorIDretrieved = true;
+                	visitorID = data;
+			console.log("visitorID --> " + visitorID);
+			if (myType.indexOf("acebook") > -1){
+				$("#bindNumber").prop( "disabled", false );
+				$("#numberToBind").prop( "disabled", false );
+				fetchDataFB();
+			}
+                };
+                
+                var onErrorVisitorID = function(data) {
+                // Do something with the returning data
+                	
+                };
+		
+		
+		SDK.get('authenticatedData.personalInfo.contactInfo[0].phone', onSuccess, onError); //ricontatto
+
+		SDK.get('authenticatedData.customerDetails.type', onSuccessType, onErrorType);
+		SDK.get('claimsAndAuthType.claims.sub', onSuccessClaims, onErrorClaims);
+		SDK.get('SDE', onSuccessSDE, onErrorSDE);
+		SDK.get('visitorInfo.visitorId', onSuccessVisitorID, onErrorVisitorID);
+               
+              
+           });
+	    
+ 
+  
+   
+</script>
+
+	
+<div id="mywidget" class="divwidget">
+	
+	<label>Name: </label></br>
+	<input type="text" id="name" value="...loading" size="25"></br>
+	</br>
+	<label>Phone Number: </label> <div id="phone">...loading</div></br>
+	<label>Facebook ID: </label></br>
+	<input type="text" id="facebookID" value="...loading" size="40"></br>
+	</br>
+	<label>Customer Type: </label>
+	<div id="ctype"> 
+		<select id="myctype">
+			<option value="0">VIP</option>
+			<option value="1">disturber</option>
+			<option value="2">prospect</option>
+		</select>
+	</div>
+	</br>
+	<div id="myUrlLink">
+		<a id="myHref" href="#" target="_blank">Customer CRM Page</a>
+	</div>
+	</br>
+	<div style="float: left;">
+		<button id ="submit" class="send-button" type="button" onclick="sendData()" disabled>Send data</button></br>
+		<div id="alertSend"></div>
+	</div>
+
+	<div style="float: right;">
+		<button id ="bindNumber" class="send-button" type="button" onclick="bindNumber()" disabled>Bind Number</button>
+		<div style="float: none;">
+			<input type="text" id="numberToBind" value="" size="25" disabled></br>
+		</div>
+		<div id="alertBind"></div>
+	</div>
+	</br>
+	</br>
+	<button id ="sendNPS" class="nps-button" type="button" onclick="sendNPS()" disabled>Send NPS</button>
+	</br>
+	</br>
+	<div id="alertOtherConversations"></div>
+
+
+
+
+
+</div>
+
+
+
+</body>
+
+
+</html>
