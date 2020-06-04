@@ -320,6 +320,11 @@
                 // Do something with the returning data
                 	myClaim = data;
 			console.log("subID --> " + myClaim);
+			if ((myClaim.indexOf("acebook") > -1) && visitorIDretrieved){
+				$("#bindNumber").prop( "disabled", false );
+				$("#numberToBind").prop( "disabled", false );
+				fetchDataFB();
+			}
                 };
                 
                 var onErrorClaims = function(data) {
