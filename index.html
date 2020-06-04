@@ -152,7 +152,7 @@
 					
           			}	
         		});
-        		var URLforPOST = "https://marcowabot.herokuapp.com/bind";
+        		var URLforPOST = "https://abc-auth.herokuapp.com/bind";
 			xhr.open("POST", URLforPOST);
 			xhr.setRequestHeader("Content-Type", "application/json");
 			
@@ -239,7 +239,7 @@
 					}
 				}	
 			});
-			var URLforGET = "https://marcowabot.herokuapp.com/getApp?phone=" + phoneNumber;
+			var URLforGET = "https://abc-auth.herokuapp.com/getApp?phone=" + phoneNumber;
 			console.log(URLforGET);
 			xhr.open("GET", URLforGET);
 			xhr.send();
@@ -287,7 +287,7 @@
 					}
 				}	
 			});
-			var URLforGET = "https://marcowabot.herokuapp.com/getFB?facebookID=" + visitorID;
+			var URLforGET = "https://abc-auth.herokuapp.com/getFB?facebookID=" + visitorID;
 			console.log(URLforGET);
 			xhr.open("GET", URLforGET);
 			xhr.send();
